@@ -280,10 +280,10 @@ class AdminControllerTest {
   void resetPassword_nonExistentUser_returns404() throws Exception {
     doThrow(new UsernameNotFoundException("not found"))
         .when(userService)
-        .resetPassword(eq("ghost"), anyString());
+        .resetPassword(eq("ghost-user"), anyString());
 
     mockMvc
-        .perform(MockMvcRequestBuilders.post("/service/admin/users/ghost/reset-password"))
+        .perform(MockMvcRequestBuilders.post("/service/admin/users/ghost-user/reset-password"))
         .andExpect(status().isNotFound());
   }
 }

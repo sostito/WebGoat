@@ -6,6 +6,7 @@ package org.owasp.webgoat.container.users;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.regex.Pattern;
 import lombok.AllArgsConstructor;
 import org.owasp.webgoat.container.i18n.PluginMessages;
 import org.owasp.webgoat.container.session.Course;
@@ -39,6 +40,8 @@ public class AdminController {
   private static final String CHARS =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$";
   private static final int TEMP_PASSWORD_LENGTH = 12;
+  // Same rule used by UserForm at registration time.
+  private static final Pattern VALID_USERNAME = Pattern.compile("[a-z0-9-]{6,45}");
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   private final UserService userService;
@@ -159,6 +162,9 @@ public class AdminController {
   @PostMapping("/users/{username}/reset-password")
   @PreAuthorize("hasAuthority('WEBGOAT_ADMIN')")
   public ResponseEntity<PasswordResetResponse> resetPassword(@PathVariable String username) {
+    if (username == null || !VALID_USERNAME.matcher(username).matches()) {
+      return ResponseEntity.badRequest().build();
+    }
     String tempPassword = generateTemporaryPassword();
     try {
       userService.resetPassword(username, tempPassword);
