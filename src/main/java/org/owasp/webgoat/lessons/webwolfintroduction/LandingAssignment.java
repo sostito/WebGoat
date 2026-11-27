@@ -7,6 +7,8 @@ package org.owasp.webgoat.lessons.webwolfintroduction;
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.failed;
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.success;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import org.apache.commons.lang3.StringUtils;
 import org.owasp.webgoat.container.CurrentUsername;
 import org.owasp.webgoat.container.assignments.AssignmentEndpoint;
@@ -29,7 +31,11 @@ public class LandingAssignment implements AssignmentEndpoint {
   @PostMapping("/WebWolf/landing")
   @ResponseBody
   public AttackResult click(String uniqueCode, @CurrentUsername String username) {
-    if (StringUtils.reverse(username).equals(uniqueCode)) {
+    // Constant-time comparison to avoid timing attacks (Snyk Code: Observable Timing Discrepancy)
+    if (uniqueCode != null
+        && MessageDigest.isEqual(
+            StringUtils.reverse(username).getBytes(StandardCharsets.UTF_8),
+            uniqueCode.getBytes(StandardCharsets.UTF_8))) {
       return success(this).build();
     }
     return failed(this).feedback("webwolf.landing_wrong").build();
